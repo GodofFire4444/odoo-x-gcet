@@ -1,6 +1,6 @@
 import React from 'react';
 
-const StatusBadge = ({ status, type = 'attendance' }) => {
+const StatusBadge = ({ status }) => {
     const getStatusStyles = (status) => {
         const s = status.toLowerCase();
 

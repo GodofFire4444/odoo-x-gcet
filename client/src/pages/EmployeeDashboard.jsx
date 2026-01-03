@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, CheckCircle, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import './dashboard.css';
 
-const StatCard = ({ title, value, icon: IconComponent, color }) => (
+const StatCard = ({ title, value, icon: IconComponent, color, children, label, trend }) => (
   <div className="stat-card">
     <div className="stat-header">
       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</span>
@@ -31,7 +31,6 @@ const EmployeeDashboard = () => {
           label="Present this month"
           icon={CheckCircle}
           color="var(--success)"
-          trend="+2.4%"
         >
           <div className="circular-progress">
             <svg width="60" height="60">

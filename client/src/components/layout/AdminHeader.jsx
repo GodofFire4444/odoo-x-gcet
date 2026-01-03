@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Bell, ChevronDown, User, Settings,
-    FileText, LogOut, BellRing
+    LogOut, Shield
 } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 
-const Header = ({ title }) => {
+const AdminHeader = ({ title }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
     const navigate = useNavigate();
@@ -34,15 +34,8 @@ const Header = ({ title }) => {
         };
     }, [isMenuOpen]);
 
-    const handleNavigate = (path) => {
-        setIsMenuOpen(false);
-        navigate(path);
-        // Add scroll logic if needed for specific sections
-    };
-
     const handleLogout = () => {
         setIsMenuOpen(false);
-        // Simple UI redirect for logout simulation
         navigate('/');
     };
 
@@ -74,10 +67,10 @@ const Header = ({ title }) => {
                         aria-expanded={isMenuOpen}
                         aria-haspopup="true"
                     >
-                        <div className="avatar-placeholder">RK</div>
+                        <div className="avatar-placeholder" style={{ backgroundColor: 'var(--primary)', color: 'white' }}>AD</div>
                         <div className="user-info">
-                            <span className="user-name">Raj</span>
-                            <span className="user-role">Senior Engineer</span>
+                            <span className="user-name">Admin User</span>
+                            <span className="user-role">Administrator</span>
                         </div>
                         <ChevronDown
                             size={16}
@@ -91,10 +84,10 @@ const Header = ({ title }) => {
                     {isMenuOpen && (
                         <div className="profile-dropdown" role="menu">
                             <div className="dropdown-header">
-                                <div className="dropdown-avatar">RJ</div>
+                                <div className="dropdown-avatar" style={{ backgroundColor: 'var(--primary)', color: 'white' }}>AD</div>
                                 <div className="dropdown-user-info">
-                                    <span className="dropdown-user-name">Raj Kiran</span>
-                                    <span className="dropdown-user-email">raj.kiran@dayflow.com</span>
+                                    <span className="dropdown-user-name">Admin User</span>
+                                    <span className="dropdown-user-email">admin@dayflow.com</span>
                                 </div>
                             </div>
 
@@ -102,30 +95,22 @@ const Header = ({ title }) => {
                                 <button
                                     className="dropdown-item"
                                     role="menuitem"
-                                    onClick={() => handleNavigate('/employee/profile')}
+                                    onClick={() => navigate('/admin/settings')}
                                 >
-                                    <User size={18} /> View Profile
+                                    <User size={18} /> Profile
                                 </button>
                                 <button
                                     className="dropdown-item"
                                     role="menuitem"
-                                    onClick={() => handleNavigate('/employee/profile')}
+                                    onClick={() => navigate('/admin/settings')}
                                 >
                                     <Settings size={18} /> Settings
                                 </button>
                                 <button
                                     className="dropdown-item"
                                     role="menuitem"
-                                    onClick={() => handleNavigate('/employee/profile')}
                                 >
-                                    <FileText size={18} /> My Documents
-                                </button>
-                                <button
-                                    className="dropdown-item"
-                                    role="menuitem"
-                                    onClick={() => handleNavigate('/employee/profile')}
-                                >
-                                    <BellRing size={18} /> Notifications
+                                    <Shield size={18} /> Security
                                 </button>
 
                                 <div className="dropdown-divider"></div>
@@ -146,4 +131,4 @@ const Header = ({ title }) => {
     );
 };
 
-export default Header;
+export default AdminHeader;

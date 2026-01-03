@@ -65,23 +65,30 @@ export const login = async (req, res) => {
  */
 export const register = async (req, res) => {
   try {
-    const { email, password, role, firstName, lastName } = req.body;
+    console.log("Registration request received:", { ...req.body, password: "REDACTED" });
+    const { email, password, role, firstName, lastName, name, companyName, phone } = req.body;
 
     // Validate required fields
     if (!email || !password || !role) {
-      return res.status(400).json({ error: "Email, password, and role are required" });
+      const msg = "Email, password, and role are required";
+      console.log("Registration failed:", msg, { email, role });
+      return res.status(400).json({ error: msg });
     }
 
     // Validate email format
     if (!validateEmail(email)) {
-      return res.status(400).json({ error: "Invalid email format" });
+      const msg = "Invalid email format";
+      console.log("Registration failed:", msg, email);
+      return res.status(400).json({ error: msg });
     }
 
     // Validate password strength
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
+      const msg = `Password does not meet requirements: ${passwordValidation.errors.join(", ")}`;
+      console.log("Registration failed:", msg);
       return res.status(400).json({
-        error: "Password does not meet requirements",
+        error: msg,
         details: passwordValidation.errors
       });
     }
@@ -97,7 +104,9 @@ export const register = async (req, res) => {
     }
 
     if (existingUser) {
-      return res.status(400).json({ error: "User with this email already exists" });
+      const msg = "User with this email already exists";
+      console.log("Registration failed:", msg, email);
+      return res.status(400).json({ error: msg });
     }
 
     // Hash password
@@ -108,14 +117,17 @@ export const register = async (req, res) => {
     if (role === "ADMIN") {
       // Create admin user
       newUser = new Admin({
+        name: name || firstName || "",
+        companyName: companyName || "",
         email,
+        phone: phone || "",
         password: hashedPassword,
         role: "ADMIN",
         emailVerified: false
       });
       await newUser.save();
     } else {
-      // Generate employee ID
+      // Generate employee ID 
       const employeeCount = await Employee.countDocuments();
       const employeeId = `EMP${String(employeeCount + 1).padStart(4, '0')}`;
 
@@ -125,6 +137,7 @@ export const register = async (req, res) => {
         password: hashedPassword,
         firstName: firstName || "",
         lastName: lastName || "",
+        phone: phone || "",
         employeeId,
         serialNo: employeeCount + 1,
         role: "EMPLOYEE",
@@ -155,6 +168,6 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error("Registration error:", error);
-    res.status(500).json({ error: "Server error during registration" });
+    res.status(500).json({ error: `Server error during registration: ${error.message}` });
   }
 };

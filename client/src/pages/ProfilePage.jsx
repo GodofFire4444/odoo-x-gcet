@@ -1,54 +1,98 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-    User, Mail, Phone, MapPin, Calendar, Briefcase,
-    Shield, Download, Eye, Upload, Edit3, Save, X,
-    FileText, Award, Layers, Users, TrendingUp, Info
-} from 'lucide-react';
+import { getProfile, updateProfile, uploadProfilePicture } from '../api/profile';
 import Modal from '../components/common/Modal';
 import './profile.css';
 
 const ProfilePage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [saving, setSaving] = useState(false);
 
-    // Dummy Profile Data
-    const [profileData, setProfileData] = useState({
-        personal: {
-            fullName: "Raj",
-            email: "raj.kiran@dayflow.com",
-            phone: "+91 98765 43210",
-            address: "123 Tech Park, Hitech City, Hyderabad",
-            dob: "1995-06-15",
-            emergencyContact: "Anjali Sharma (+91 98000 11122)"
-        },
-        job: {
-            role: "Senior Frontend Engineer",
-            department: "Engineering",
-            employeeId: "DF-2024-089",
-            status: "Full-time",
-            joinDate: "August 12, 2024",
-            manager: "Arun Varma",
-            location: "Hyderabad Office (Remote)"
-        },
-        salary: {
-            current: "$95,000",
-            cycle: "Monthly",
-            lastIncrement: "Dec 01, 2024"
+    const [profileData, setProfileData] = useState(null);
+    const [tempData, setTempData] = useState({});
+
+    React.useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            setLoading(true);
+            const data = await getProfile();
+            setProfileData(data);
+            setTempData({
+                phone: data.phone || '',
+                address: data.privateInfo?.address || '',
+                personalEmail: data.privateInfo?.personalEmail || '',
+                gender: data.privateInfo?.gender || '',
+                maritalStatus: data.privateInfo?.maritalStatus || ''
+            });
+            setError(null);
+        } catch (err) {
+            console.error("Fetch profile error:", err);
+            setError("Failed to load profile data");
+        } finally {
+            setLoading(false);
         }
-    });
+    };
 
-    const [tempData, setTempData] = useState({ ...profileData.personal });
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            const updated = await updateProfile({
+                phone: tempData.phone,
+                address: tempData.address,
+                personalEmail: tempData.personalEmail,
+                gender: tempData.gender,
+                maritalStatus: tempData.maritalStatus
+            });
+            setProfileData(updated.employee || updated);
+            setIsEditing(false);
+            setError(null);
+        } catch (err) {
+            console.error("Update profile error:", err);
+            setError("Failed to update profile");
+        } finally {
+            setSaving(false);
+        }
+    };
 
-    const handleSave = () => {
-        setProfileData({ ...profileData, personal: { ...tempData } });
-        setIsEditing(false);
+    const handleProfilePictureUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // For simplicity, we convert to base64
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            try {
+                setSaving(true);
+                const result = await uploadProfilePicture(reader.result);
+                setProfileData({ ...profileData, profilePicture: result.profilePicture });
+            } catch (err) {
+                console.error("Upload error:", err);
+                setError("Failed to upload picture");
+            } finally {
+                setSaving(false);
+            }
+        };
     };
 
     const handleCancel = () => {
-        setTempData({ ...profileData.personal });
+        setTempData({
+            phone: profileData.phone || '',
+            address: profileData.privateInfo?.address || '',
+            personalEmail: profileData.privateInfo?.personalEmail || '',
+            gender: profileData.privateInfo?.gender || '',
+            maritalStatus: profileData.privateInfo?.maritalStatus || ''
+        });
         setIsEditing(false);
     };
+
+    if (loading) return <div className="loading-state">Loading profile...</div>;
+    if (error && !profileData) return <div className="error-state">{error}</div>;
+
 
     return (
         <div className="profile-container">
@@ -59,35 +103,46 @@ const ProfilePage = () => {
                 animate={{ opacity: 1, y: 0 }}
             >
                 <div className="avatar-wrapper">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Raj" alt="Avatar" className="avatar-large" />
+                    <img
+                        src={profileData.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData.firstName}`}
+                        alt="Avatar"
+                        className="avatar-large"
+                    />
+                    <label className="avatar-upload-overlay">
+                        <Upload size={20} />
+                        <input type="file" accept="image/*" onChange={handleProfilePictureUpload} hidden />
+                    </label>
                     <div className="status-indicator status-active"></div>
                 </div>
 
                 <div className="overview-details">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                            <h1>{profileData.personal.fullName}</h1>
+                            <h1>{profileData.firstName} {profileData.lastName}</h1>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                                <Briefcase size={16} /> {profileData.job.role}
+                                <Briefcase size={16} /> {profileData.role === 'ADMIN' ? 'Administrator' : 'Employee'}
                             </div>
                         </div>
                         <button
                             className="btn-primary"
                             style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
                             onClick={() => setIsEditing(true)}
+                            disabled={saving}
                         >
                             <Edit3 size={16} style={{ marginRight: '0.5rem' }} /> Edit Profile
                         </button>
                     </div>
 
                     <div className="overview-meta">
-                        <div className="meta-item"><Layers size={16} /> {profileData.job.department}</div>
-                        <div className="meta-item"><Info size={16} /> ID: {profileData.job.employeeId}</div>
-                        <div className="meta-item"><Users size={16} /> {profileData.job.status}</div>
-                        <div className="meta-item"><Calendar size={16} /> Joined {profileData.job.joinDate}</div>
+                        <div className="meta-item"><Layers size={16} /> Engineering</div>
+                        <div className="meta-item"><Info size={16} /> ID: {profileData.employeeId}</div>
+                        <div className="meta-item"><Users size={16} /> Full-time</div>
+                        <div className="meta-item"><Calendar size={16} /> Joined {profileData.privateInfo?.dateOfJoining ? new Date(profileData.privateInfo.dateOfJoining).toLocaleDateString() : 'N/A'}</div>
                     </div>
                 </div>
             </motion.div>
+
+            {error && <div className="error-banner">{error}</div>}
 
             <div className="profile-grid">
                 {/* Left Column: Personal & Job */}
@@ -99,19 +154,23 @@ const ProfilePage = () => {
                             <h2 className="section-title"><User size={20} /> Personal Information</h2>
                             {isEditing && (
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button className="view-btn" onClick={handleCancel}><X size={16} /> Cancel</button>
-                                    <button className="btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={handleSave}><Save size={16} /> Save</button>
+                                    <button className="view-btn" onClick={handleCancel} disabled={saving}><X size={16} /> Cancel</button>
+                                    <button className="btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={handleSave} disabled={saving}>
+                                        {saving ? 'Saving...' : <><Save size={16} /> Save</>}
+                                    </button>
                                 </div>
                             )}
                         </div>
 
                         <div className="fields-grid">
-                            <ProfileField label="Full Name" value={tempData.fullName} isEditing={isEditing} onChange={(v) => setTempData({ ...tempData, fullName: v })} />
-                            <ProfileField label="Email Address" value={tempData.email} readOnly />
+                            <ProfileField label="Full Name" value={`${profileData.firstName} ${profileData.lastName}`} readOnly />
+                            <ProfileField label="Email Address" value={profileData.email} readOnly />
+                            <ProfileField label="Personal Email" value={tempData.personalEmail} isEditing={isEditing} onChange={(v) => setTempData({ ...tempData, personalEmail: v })} />
                             <ProfileField label="Phone Number" value={tempData.phone} isEditing={isEditing} onChange={(v) => setTempData({ ...tempData, phone: v })} />
-                            <ProfileField label="Date of Birth" value={tempData.dob} isEditing={isEditing} type="date" onChange={(v) => setTempData({ ...tempData, dob: v })} />
+                            <ProfileField label="Date of Birth" value={profileData.privateInfo?.dateOfBirth ? new Date(profileData.privateInfo.dateOfBirth).toISOString().split('T')[0] : ''} readOnly type="date" />
+                            <ProfileField label="Gender" value={tempData.gender} isEditing={isEditing} onChange={(v) => setTempData({ ...tempData, gender: v })} />
+                            <ProfileField label="Marital Status" value={tempData.maritalStatus} isEditing={isEditing} onChange={(v) => setTempData({ ...tempData, maritalStatus: v })} />
                             <ProfileField label="Home Address" value={tempData.address} isEditing={isEditing} colSpan={2} onChange={(v) => setTempData({ ...tempData, address: v })} />
-                            <ProfileField label="Emergency Contact" value={tempData.emergencyContact} isEditing={isEditing} colSpan={2} onChange={(v) => setTempData({ ...tempData, emergencyContact: v })} />
                         </div>
                     </section>
 
@@ -121,12 +180,10 @@ const ProfilePage = () => {
                             <h2 className="section-title"><Shield size={20} /> Job & Employment</h2>
                         </div>
                         <div className="fields-grid">
-                            <ProfileField label="Role" value={profileData.job.role} readOnly />
-                            <ProfileField label="Department" value={profileData.job.department} readOnly />
-                            <ProfileField label="Reporting Manager" value={profileData.job.manager} readOnly />
-                            <ProfileField label="Employment Type" value={profileData.job.status} readOnly />
-                            <ProfileField label="Work Location" value={profileData.job.location} readOnly />
-                            <ProfileField label="Employee ID" value={profileData.job.employeeId} readOnly />
+                            <ProfileField label="Role" value={profileData.role} readOnly />
+                            <ProfileField label="Department" value="Engineering" readOnly />
+                            <ProfileField label="Employee ID" value={profileData.employeeId} readOnly />
+                            <ProfileField label="Date of Joining" value={profileData.privateInfo?.dateOfJoining ? new Date(profileData.privateInfo.dateOfJoining).toLocaleDateString() : 'N/A'} readOnly />
                         </div>
                     </section>
                 </div>
@@ -134,23 +191,18 @@ const ProfilePage = () => {
                 {/* Right Column: Salary & Documents */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                    {/* 4. SALARY SNAPSHOT */}
-                    <section className="profile-section salary-snapshot-card">
+                    {/* 4. BANK DETAILS SNAPSHOT */}
+                    <section className="profile-section">
                         <div className="section-header">
-                            <h2 className="section-title"><TrendingUp size={20} /> Salary Snapshot</h2>
+                            <h2 className="section-title"><TrendingUp size={20} /> Bank Details</h2>
                         </div>
-                        <div className="salary-info">
-                            <div className="field-label">Current Monthly Salary</div>
-                            <div className="salary-amount">{profileData.salary.current}</div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', fontSize: '0.875rem' }}>
-                                <span style={{ color: 'var(--text-muted)' }}>Pay Cycle: <b>{profileData.salary.cycle}</b></span>
-                                <span style={{ color: 'var(--text-muted)' }}>Last Hike: <b>{profileData.salary.lastIncrement}</b></span>
-                            </div>
-                            <button className="view-btn" style={{ width: '100%', marginTop: '1.5rem', justifyContent: 'center' }}>
-                                View Payroll Details
-                            </button>
+                        <div className="fields-grid">
+                            <ProfileField label="Account Number" value={profileData.bankDetails?.accountNumber} readOnly />
+                            <ProfileField label="Bank Name" value={profileData.bankDetails?.bankName} readOnly />
+                            <ProfileField label="IFSC Code" value={profileData.bankDetails?.ifscCode} readOnly />
                         </div>
                     </section>
+
 
                     {/* 5. DOCUMENTS SECTION */}
                     <section className="profile-section">

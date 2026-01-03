@@ -22,7 +22,10 @@ const RegistrationAdmin = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear field specific error
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    // Clear global form error
+    if (errors.form) setErrors(prev => ({ ...prev, form: null }));
   };
 
   const handleSubmit = async (e) => {
@@ -54,7 +57,11 @@ const RegistrationAdmin = () => {
       navigate('/login/admin');
 
     } catch (err) {
-      setErrors({ form: err.response?.data?.error || 'Registration failed' });
+      console.error("Registration error details:", err.response?.data);
+      setErrors({
+        form: err.response?.data?.error || 'Registration failed',
+        details: err.response?.data?.details
+      });
     }
   };
 
@@ -82,6 +89,29 @@ const RegistrationAdmin = () => {
           <h2 className="auth-title text-gradient">Register Admin</h2>
           <p className="auth-subtitle">Set up your organization on Dayflow</p>
         </header>
+
+        {errors.form && (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--danger)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--danger)',
+            fontSize: '0.875rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: errors.details ? '0.5rem' : 0, textAlign: 'center' }}>
+              {errors.form}
+            </div>
+            {errors.details && (
+              <ul style={{ paddingLeft: '1.25rem', margin: 0, fontSize: '0.8125rem' }}>
+                {errors.details.map((detail, i) => (
+                  <li key={i}>{detail}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
           <ImageUpload
@@ -157,6 +187,9 @@ const RegistrationAdmin = () => {
               icon={<Lock size={18} />}
             />
           </div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '-1rem' }}>
+            Password must be 8+ chars, include uppercase, lowercase, number, and special character.
+          </p>
 
           <GradientButton type="submit" style={{ marginTop: '0.5rem' }}>
             <CheckCircle2 size={20} />

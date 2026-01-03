@@ -1,12 +1,20 @@
 import express from "express";
-import { auth } from "../middleware/auth.js";
-import { adminOnly, employeeOnly } from "../middleware/roles.js";
-import { createPayroll, getMyPayroll, getAllPayrolls } from "../controllers/payroll.js";
+import { getMyPayroll, getAllPayrolls, createPayroll, updatePayroll, deletePayroll } from "../controllers/payroll.js";
+import { protect } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/roles.js";
 
 const router = express.Router();
 
-router.post("/create", auth, adminOnly, createPayroll);
-router.get("/all", auth, adminOnly, getAllPayrolls);
-router.get("/me", auth, employeeOnly, getMyPayroll);
+// All payroll routes require authentication
+router.use(protect);
+
+// Employee routes
+router.get("/my", getMyPayroll);
+
+// Admin routes
+router.get("/all", requireAdmin, getAllPayrolls);
+router.post("/", requireAdmin, createPayroll);
+router.put("/:id", requireAdmin, updatePayroll);
+router.delete("/:id", requireAdmin, deletePayroll);
 
 export default router;

@@ -1,21 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Calendar, Download, Eye, FileText, TrendingUp } from 'lucide-react';
 import StatusBadge from '../components/common/StatusBadge';
 import DataTable from '../components/common/DataTable';
 import Modal from '../components/common/Modal';
+import { getMyPayroll } from '../api/payroll';
 import './payroll.css';
 
 const PayrollPage = () => {
     const [selectedPayroll, setSelectedPayroll] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [payrollHistory, setPayrollHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [latestPayroll, setLatestPayroll] = useState(null);
 
-    const payrollHistory = [
-        { id: 1, month: 'December 2025', gross: '$5,200', deductions: '$450', net: '$4,750', status: 'paid', date: 'Jan 01, 2026' },
-        { id: 2, month: 'November 2025', gross: '$5,200', deductions: '$450', net: '$4,750', status: 'paid', date: 'Dec 01, 2025' },
-        { id: 3, month: 'October 2025', gross: '$5,000', deductions: '$400', net: '$4,600', status: 'paid', date: 'Nov 01, 2025' },
-        { id: 4, month: 'September 2025', gross: '$5,000', deductions: '$400', net: '$4,600', status: 'paid', date: 'Oct 01, 2025' },
-    ];
+    useEffect(() => {
+        fetchPayrollData();
+    }, []);
+
+    const fetchPayrollData = async () => {
+        try {
+            const data = await getMyPayroll();
+            setPayrollHistory(data);
+            if (data.length > 0) {
+                setLatestPayroll(data[0]); // Most recent payroll
+            }
+        } catch (err) {
+            console.error('Error fetching payroll:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Format payroll data for display
+    const formattedPayrollHistory = payrollHistory.map(payroll => ({
+        id: payroll._id,
+        month: payroll.month || 'N/A',
+        gross: `$${payroll.grossSalary?.toFixed(2) || '0.00'}`,
+        deductions: `$${payroll.totalDeductions?.toFixed(2) || '0.00'}`,
+        net: `$${payroll.netSalary?.toFixed(2) || '0.00'}`,
+        status: payroll.status?.toLowerCase() || 'pending',
+        date: new Date(payroll.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        rawData: payroll // Keep original data for modal
+    }));
 
     const openPayslip = (payroll) => {
         setSelectedPayroll(payroll);
@@ -50,9 +77,9 @@ const PayrollPage = () => {
             <div className="salary-summary-cards">
                 <motion.div className="salary-card primary" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                     <div className="salary-label">MONTHLY NET SALARY</div>
-                    <div className="salary-value">$4,750.00</div>
+                    <div className="salary-value">${latestPayroll?.netSalary?.toFixed(2) || '0.00'}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', fontSize: '0.875rem' }}>
-                        <TrendingUp size={16} /> +4% from previous quarter
+                        <TrendingUp size={16} /> {latestPayroll?.month || 'No data'}
                     </div>
                 </motion.div>
 
@@ -76,7 +103,13 @@ const PayrollPage = () => {
             {/* History Table */}
             <div>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.5rem' }}>Payroll History</h2>
-                <DataTable columns={columns} data={payrollHistory} />
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Loading payroll data...</div>
+                ) : formattedPayrollHistory.length > 0 ? (
+                    <DataTable columns={columns} data={formattedPayrollHistory} />
+                ) : (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No payroll records found</div>
+                )}
             </div>
 
             {/* Payslip Modal */}

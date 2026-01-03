@@ -12,10 +12,14 @@ const employeeSchema = new mongoose.Schema({
 
   email: { type: String, unique: true },
   password: String,
+  phone: String,
+  profilePicture: String, // URL or file path
 
   role: { type: String, default: "EMPLOYEE" },
 
   mustChangePassword: { type: Boolean, default: true },
+  emailVerified: { type: Boolean, default: false },
+  emailVerificationToken: String,
 
   attendance: [
     { type: mongoose.Types.ObjectId, ref: "Attendance" }

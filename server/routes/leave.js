@@ -1,16 +1,20 @@
 import express from "express";
-import { auth } from "../middleware/auth.js";
-import { adminOnly, employeeOnly } from "../middleware/roles.js";
-import { applyLeave, getMyLeaves, getAllLeaves, updateLeaveStatus } from "../controllers/leave.js";
+import { applyLeave, getMyLeaves, getAllLeaves, updateLeaveStatus, getLeaveBalance } from "../controllers/leave.js";
+import { protect } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/roles.js";
 
 const router = express.Router();
 
-// Employee Routes
-router.post("/apply", auth, employeeOnly, applyLeave);
-router.get("/me", auth, employeeOnly, getMyLeaves);
+// All leave routes require authentication
+router.use(protect);
 
-// Admin Routes
-router.get("/all", auth, adminOnly, getAllLeaves);
-router.put("/:id/status", auth, adminOnly, updateLeaveStatus);
+// Employee routes
+router.post("/apply", applyLeave);
+router.get("/my", getMyLeaves);
+router.get("/balance", getLeaveBalance);
+
+// Admin routes
+router.get("/all", requireAdmin, getAllLeaves);
+router.put("/:id/status", requireAdmin, updateLeaveStatus);
 
 export default router;

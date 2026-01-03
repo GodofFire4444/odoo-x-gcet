@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, LogIn, LogOut, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { Clock, LogIn, LogOut, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Info, AlertCircle } from 'lucide-react';
 import StatusBadge from '../components/common/StatusBadge';
 import DataTable from '../components/common/DataTable';
+import { checkIn, checkOut, getMyAttendance, getTodayAttendance } from '../api/attendance';
 import './attendance.css';
 
 const AttendancePage = () => {
@@ -11,31 +12,109 @@ const AttendancePage = () => {
     const [checkInTime, setCheckInTime] = useState(null);
     const [checkOutTime, setCheckOutTime] = useState(null);
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [todayAttendance, setTodayAttendance] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // Simulated Clock
+    // Clock update
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
 
-    const handleCheckAction = () => {
-        if (!isCheckedIn) {
-            setIsCheckedIn(true);
-            setCheckInTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-            setCheckOutTime(null);
-        } else {
-            setIsCheckedIn(false);
-            setCheckOutTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    // Fetch today's attendance status on mount
+    useEffect(() => {
+        fetchTodayStatus();
+        fetchAttendanceHistory();
+    }, []);
+
+    const fetchTodayStatus = async () => {
+        try {
+            const data = await getTodayAttendance();
+            setTodayAttendance(data.attendance);
+            setIsCheckedIn(data.hasCheckedIn && !data.hasCheckedOut);
+
+            if (data.attendance) {
+                if (data.attendance.checkIn) {
+                    setCheckInTime(new Date(data.attendance.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                }
+                if (data.attendance.checkOut) {
+                    setCheckOutTime(new Date(data.attendance.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching today status:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    // Mock Data for Table Views
-    const historyData = [
-        { date: '2026-01-02', status: 'present', checkIn: '09:00 AM', checkOut: '05:30 PM', hours: '8.5h' },
-        { date: '2026-01-01', status: 'present', checkIn: '08:55 AM', checkOut: '05:45 PM', hours: '8.8h' },
-        { date: '2025-12-31', status: 'leave', checkIn: '-', checkOut: '-', hours: '0h' },
-        { date: '2025-12-30', status: 'half-day', checkIn: '09:05 AM', checkOut: '01:00 PM', hours: '4h' },
-    ];
+    const fetchAttendanceHistory = async () => {
+        try {
+            const data = await getMyAttendance();
+            setAttendanceData(data);
+        } catch (err) {
+            console.error('Error fetching attendance history:', err);
+        }
+    };
+
+    const handleCheckAction = async () => {
+        setActionLoading(true);
+        setError(null);
+
+        try {
+            if (!isCheckedIn) {
+                const result = await checkIn();
+                setIsCheckedIn(true);
+                setCheckInTime(new Date(result.attendance.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                setCheckOutTime(null);
+                setTodayAttendance(result.attendance);
+                await fetchAttendanceHistory();
+            } else {
+                const result = await checkOut();
+                setIsCheckedIn(false);
+                setCheckOutTime(new Date(result.attendance.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                setTodayAttendance(result.attendance);
+                await fetchAttendanceHistory();
+            }
+        } catch (err) {
+            setError(err.response?.data?.error || 'An error occurred');
+            console.error('Check action error:', err);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // Format attendance data for table
+    const historyData = attendanceData.map(record => {
+        const date = new Date(record.date).toLocaleDateString();
+        const checkInFormatted = record.checkIn
+            ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '-';
+        const checkOutFormatted = record.checkOut
+            ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '-';
+        const hours = record.totalHours ? `${record.totalHours.toFixed(1)}h` : '0h';
+
+        // Determine status based on hours
+        let status = 'absent';
+        if (record.checkIn && record.checkOut) {
+            if (record.totalHours >= 8) status = 'present';
+            else if (record.totalHours >= 4) status = 'half-day';
+        } else if (record.checkIn) {
+            status = 'present'; // Checked in but not out yet
+        }
+
+        return {
+            date,
+            status,
+            checkIn: checkInFormatted,
+            checkOut: checkOutFormatted,
+            hours
+        };
+    });
 
     const columns = [
         { header: 'Date', accessor: 'date' },
@@ -69,6 +148,23 @@ const AttendancePage = () => {
 
             {/* Check-in Section */}
             <div className="check-in-card">
+                {error && (
+                    <div style={{
+                        padding: '0.75rem',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid var(--danger)',
+                        borderRadius: 'var(--radius-md)',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: 'var(--danger)'
+                    }}>
+                        <AlertCircle size={18} />
+                        <span>{error}</span>
+                    </div>
+                )}
+
                 <div className="status-info">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.875rem' }}>
                         <Clock size={16} />
@@ -93,15 +189,25 @@ const AttendancePage = () => {
                     </div>
                     <div className="time-stat">
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.25rem' }}>TOTAL HOURS</div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{isCheckedIn ? 'Running...' : (checkOutTime ? '8.0h' : '0h')}</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>
+                            {isCheckedIn ? 'Running...' : (todayAttendance?.totalHours ? `${todayAttendance.totalHours.toFixed(1)}h` : '0h')}
+                        </div>
                     </div>
                 </div>
 
                 <button
                     className={`action-btn ${isCheckedIn ? 'check-out' : 'check-in'}`}
                     onClick={handleCheckAction}
+                    disabled={actionLoading || loading}
+                    style={{ opacity: (actionLoading || loading) ? 0.6 : 1, cursor: (actionLoading || loading) ? 'not-allowed' : 'pointer' }}
                 >
-                    {isCheckedIn ? <><LogOut size={20} /> Check Out</> : <><LogIn size={20} /> Check In</>}
+                    {actionLoading ? (
+                        <>Processing...</>
+                    ) : isCheckedIn ? (
+                        <><LogOut size={20} /> Check Out</>
+                    ) : (
+                        <><LogIn size={20} /> Check In</>
+                    )}
                 </button>
             </div>
 

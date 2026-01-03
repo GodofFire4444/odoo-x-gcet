@@ -1,12 +1,20 @@
 import express from "express";
-import { auth } from "../middleware/auth.js";
-import { employeeOnly, adminOnly } from "../middleware/roles.js";
-import { checkIn, checkOut, getAllAttendance } from "../controllers/attendance.js";
+import { checkIn, checkOut, getAllAttendance, getMyAttendance, getTodayAttendance } from "../controllers/attendance.js";
+import { protect } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/roles.js";
 
 const router = express.Router();
 
-router.post("/checkin", auth, employeeOnly, checkIn);
-router.post("/checkout", auth, employeeOnly, checkOut);
-router.get("/all", auth, adminOnly, getAllAttendance);
+// All attendance routes require authentication
+router.use(protect);
+
+// Employee routes
+router.post("/checkin", checkIn);
+router.post("/checkout", checkOut);
+router.get("/my", getMyAttendance);
+router.get("/today", getTodayAttendance);
+
+// Admin routes
+router.get("/all", requireAdmin, getAllAttendance);
 
 export default router;

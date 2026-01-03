@@ -1,13 +1,15 @@
 import express from "express";
-import { auth } from "../middleware/auth.js";
-import { adminOnly, employeeOnly } from "../middleware/roles.js";
-import { createEmployee, getMyProfile, updateMyProfile } from "../controllers/employee.js";
+import { getProfile, updateProfile, updateProfilePicture } from "../controllers/employee.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/create", auth, adminOnly, createEmployee);
+// All employee routes require authentication
+router.use(protect);
 
-router.get("/me", auth, employeeOnly, getMyProfile);
-router.put("/me", auth, employeeOnly, updateMyProfile);
+// Profile routes
+router.get("/profile", getProfile);
+router.put("/profile", updateProfile);
+router.post("/profile/picture", updateProfilePicture);
 
 export default router;

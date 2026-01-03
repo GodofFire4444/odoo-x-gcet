@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, ArrowLeft } from 'lucide-react';
+import { API_BASE } from '../api';
 import AuthLayout from '../components/auth/AuthLayout';
 import { AnimatedInput } from '../components/auth/AuthInputs';
 import { GradientButton } from '../components/auth/AuthButtons';
@@ -16,9 +17,8 @@ const LoginPageEmployee = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Dummy validation
     const newErrors = {};
     if (!formData.email) newErrors.email = "Email is required";
     if (!formData.password) newErrors.password = "Password is required";
@@ -28,8 +28,28 @@ const LoginPageEmployee = () => {
       return;
     }
 
-    // Simulate login redirect
-    navigate('/employee/dashboard');
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrors({ form: data.error || 'Login failed' });
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      const role = data.user?.role || 'EMPLOYEE';
+      if (role === 'ADMIN') navigate('/admin/dashboard');
+      else navigate('/employee/dashboard');
+
+    } catch (err) {
+      setErrors({ form: 'Network error' });
+    }
   };
 
   return (

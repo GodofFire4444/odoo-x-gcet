@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { API_BASE } from '../api';
 import AuthLayout from '../components/auth/AuthLayout';
 import { AnimatedInput } from '../components/auth/AuthInputs';
 import { GradientButton } from '../components/auth/AuthButtons';
@@ -20,7 +21,7 @@ const AdminLogin = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!formData.companyName) newErrors.companyName = "Company name is required";
@@ -32,8 +33,22 @@ const AdminLogin = () => {
       return;
     }
 
-    // Simulate admin login
-    navigate('/admin/dashboard');
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors({ form: data.error || 'Login failed' });
+        return;
+      }
+      localStorage.setItem('token', data.token);
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setErrors({ form: 'Network error' });
+    }
   };
 
   return (

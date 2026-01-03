@@ -18,14 +18,45 @@ const RegistrationAdmin = () => {
     companyLogo: null
   });
   const [errors, setErrors] = useState({});
+  const [passwordValidation, setPasswordValidation] = useState({ valid: true, message: '' });
+
+  const validatePasswordStrength = (password) => {
+    if (!password) return { valid: true, message: '' };
+    if (password.length < 8) return { valid: true, message: '' }; // Don't show criteria errors if length < 8
+
+    const missing = [];
+    if (!/[A-Z]/.test(password)) missing.push("uppercase letter");
+    if (!/[a-z]/.test(password)) missing.push("lowercase letter");
+    if (!/[0-9]/.test(password)) missing.push("number");
+    if (!/[!@#$%^&*(),.?":{}|<>_+\-=\[\]\\;'/`~]/.test(password)) missing.push("special character");
+
+    if (missing.length > 0) {
+      return {
+        valid: false,
+        message: `Include: ${missing.join(", ")}`
+      };
+    }
+    return { valid: true, message: '' };
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
     // Clear field specific error
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
     // Clear global form error
     if (errors.form) setErrors(prev => ({ ...prev, form: null }));
+
+    // Real-time password validation
+    if (name === 'password') {
+      const strength = validatePasswordStrength(value);
+      if (!strength.valid) {
+        setErrors(prev => ({ ...prev, password: strength.message }));
+      } else {
+        setErrors(prev => ({ ...prev, password: null }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -35,7 +66,17 @@ const RegistrationAdmin = () => {
     if (!formData.companyName) newErrors.companyName = "Company is required";
     if (!formData.email) newErrors.email = "Email is required";
     if (!formData.phoneNumber) newErrors.phoneNumber = "Phone number is required";
-    if (!formData.password) newErrors.password = "Password is required";
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Minimum 8 characters required";
+    } else {
+      const strength = validatePasswordStrength(formData.password);
+      if (!strength.valid) {
+        newErrors.password = strength.message;
+      }
+    }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }

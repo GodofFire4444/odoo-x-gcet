@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const adminSchema = new mongoose.Schema({
+  name: String,
   companyName: String,
   email: { type: String, unique: true },
   phone: String,

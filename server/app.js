@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
 
-import authRoutes from "./routes/auth.js";
-import employeeRoutes from "./routes/employee.js";
-import attendanceRoutes from "./routes/attendence.js";
-import payrollRoutes from "./routes/payroll.js";
+import authRoutes from "./Routes/auth.js";
+import employeeRoutes from "./Routes/employee.js";
+import attendanceRoutes from "./Routes/attendance.js";
+import payrollRoutes from "./Routes/payroll.js";
 
 import adminRoutes from "./Routes/admin.js";
 import leaveRoutes from "./Routes/leave.js";
@@ -26,4 +26,4 @@ app.use("/payroll", payrollRoutes);
 app.use("/leave", leaveRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, ()=> console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

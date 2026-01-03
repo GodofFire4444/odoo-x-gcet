@@ -12,16 +12,28 @@ const router = express.Router();
 
 // ADMIN SIGNUP
 router.post("/signup", async(req,res)=>{
+  try {
+    console.log("Admin Signup Request Body:", req.body);
+    const { name, companyName,email,phone,password } = req.body;
 
-  const { companyName,email,phone,password } = req.body;
+    // Check if admin already exists
+    const existingAdmin = await Admin.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
 
-  const hashed = await bcrypt.hash(password,10);
+    const hashed = await bcrypt.hash(password,10);
 
-  const admin = await Admin.create({
-    companyName,email,phone,password:hashed
-  });
+    const admin = await Admin.create({
+      name, companyName,email,phone,password:hashed
+    });
 
-  res.json({ message:"Admin created" });
+    console.log("Admin Created:", admin._id);
+    res.json({ message:"Admin created" });
+  } catch (error) {
+    console.error("Signup Error:", error);
+    res.status(500).json({ error: "Server error during signup" });
+  }
 });
 
 

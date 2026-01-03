@@ -1,7 +1,7 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
 import { employeeOnly, adminOnly } from "../middleware/roles.js";
-import { checkIn, checkOut, getAllAttendance } from "../controllers/attendence.js";
+import { checkIn, checkOut, getAllAttendance } from "../controllers/attendance.js";
 
 const router = express.Router();
 

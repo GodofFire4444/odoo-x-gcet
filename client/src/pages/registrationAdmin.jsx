@@ -44,6 +44,7 @@ const RegistrationAdmin = () => {
 
     try {
       await adminSignup({
+        name: formData.adminName,
         companyName: formData.companyName,
         email: formData.email,
         phone: formData.phoneNumber,

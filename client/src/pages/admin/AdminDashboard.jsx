@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Users, UserCheck, Calendar, DollarSign, Activity } from 'lucide-react';
 import MetricCard from '../../components/common/MetricCard';
 import { motion } from 'framer-motion';
-import { getAllEmployees, getAllAttendance, getAllLeaves } from '../../api/admin';
+import { getAllEmployees, getAllLeaves } from '../../api/admin';
+import { getAllAttendance } from '../../api/attendance';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
@@ -47,8 +48,8 @@ const AdminDashboard = () => {
                     time: new Date(l.createdAt).toLocaleDateString(),
                     date: new Date(l.createdAt)
                 }));
-                
-                const sorted = newActivities.sort((a,b) => b.date - a.date).slice(0, 5);
+
+                const sorted = newActivities.sort((a, b) => b.date - a.date).slice(0, 5);
                 setActivities(sorted);
 
             } catch (error) {
@@ -64,31 +65,31 @@ const AdminDashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* KPI Section */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-                <MetricCard 
-                    title="Total Employees" 
-                    value={stats.totalEmployees} 
-                    icon={Users} 
+                <MetricCard
+                    title="Total Employees"
+                    value={stats.totalEmployees}
+                    icon={Users}
                     trend="+12%"
                     color="var(--primary)"
                 />
-                <MetricCard 
-                    title="Present Today" 
-                    value={stats.presentToday} 
-                    icon={UserCheck} 
+                <MetricCard
+                    title="Present Today"
+                    value={stats.presentToday}
+                    icon={UserCheck}
                     trend="+5%"
                     color="var(--success)"
                 />
-                <MetricCard 
-                    title="Leave Requests" 
-                    value={stats.leaveRequests} 
-                    icon={Calendar} 
+                <MetricCard
+                    title="Leave Requests"
+                    value={stats.leaveRequests}
+                    icon={Calendar}
                     trend="-2%"
                     color="var(--warning)"
                 />
-                <MetricCard 
-                    title="Payroll Processed" 
-                    value={`${stats.payrollProcessed}%`} 
-                    icon={DollarSign} 
+                <MetricCard
+                    title="Payroll Processed"
+                    value={`${stats.payrollProcessed}%`}
+                    icon={DollarSign}
                     trend="+100%"
                     color="#6366f1"
                 />
@@ -96,14 +97,14 @@ const AdminDashboard = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
                 {/* Charts Section */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ 
-                        backgroundColor: 'var(--surface)', 
-                        padding: '1.5rem', 
-                        borderRadius: 'var(--radius-lg)', 
-                        border: '1px solid var(--border)' 
+                    style={{
+                        backgroundColor: 'var(--surface)',
+                        padding: '1.5rem',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--border)'
                     }}
                 >
                     <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.5rem' }}>Attendance Overview</h2>
@@ -111,10 +112,10 @@ const AdminDashboard = () => {
                         {/* Dummy Bar Chart */}
                         {[65, 78, 90, 85, 92, 88, 95].map((h, i) => (
                             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                                <div style={{ 
-                                    width: '100%', 
-                                    height: `${h}%`, 
-                                    backgroundColor: 'var(--primary)', 
+                                <div style={{
+                                    width: '100%',
+                                    height: `${h}%`,
+                                    backgroundColor: 'var(--primary)',
                                     opacity: 0.8,
                                     borderRadius: '4px 4px 0 0',
                                     transition: 'height 0.5s ease'
@@ -128,15 +129,15 @@ const AdminDashboard = () => {
                 </motion.div>
 
                 {/* Recent Activity */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    style={{ 
-                        backgroundColor: 'var(--surface)', 
-                        padding: '1.5rem', 
-                        borderRadius: 'var(--radius-lg)', 
-                        border: '1px solid var(--border)' 
+                    style={{
+                        backgroundColor: 'var(--surface)',
+                        padding: '1.5rem',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--border)'
                     }}
                 >
                     <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.5rem' }}>Recent Activity</h2>
@@ -145,23 +146,23 @@ const AdminDashboard = () => {
                             <div key={activity.id} style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
                                 {/* Timeline Line */}
                                 {index !== activities.length - 1 && (
-                                    <div style={{ 
-                                        position: 'absolute', 
-                                        left: '19px', 
-                                        top: '40px', 
-                                        bottom: '-24px', 
-                                        width: '2px', 
-                                        backgroundColor: 'var(--border)' 
+                                    <div style={{
+                                        position: 'absolute',
+                                        left: '19px',
+                                        top: '40px',
+                                        bottom: '-24px',
+                                        width: '2px',
+                                        backgroundColor: 'var(--border)'
                                     }}></div>
                                 )}
-                                
-                                <div style={{ 
-                                    width: '40px', 
-                                    height: '40px', 
-                                    borderRadius: '50%', 
+
+                                <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
                                     backgroundColor: 'var(--surface-hover)',
-                                    display: 'flex', 
-                                    alignItems: 'center', 
+                                    display: 'flex',
+                                    alignItems: 'center',
                                     justifyContent: 'center',
                                     flexShrink: 0
                                 }}>

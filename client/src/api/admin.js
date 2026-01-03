@@ -5,11 +5,6 @@ export const getAllEmployees = async () => {
     return data;
 };
 
-export const getAllAttendance = async () => {
-    const { data } = await api.get('/attendance/all');
-    return data;
-};
-
 export const getAllLeaves = async () => {
     const { data } = await api.get('/leave/all');
     return data;

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
 import AuthLayout from '../components/auth/AuthLayout';

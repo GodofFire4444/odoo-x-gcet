@@ -2,11 +2,11 @@ import React from 'react';
 import { Calendar, CheckCircle, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import './dashboard.css';
 
-const StatCard = ({ title, value, label, icon: Icon, color, children, trend }) => (
+const StatCard = ({ title, value, icon: IconComponent, color }) => (
   <div className="stat-card">
     <div className="stat-header">
       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</span>
-      <Icon size={20} color={color || 'var(--text-muted)'} />
+      <IconComponent size={20} color={color || 'var(--text-muted)'} />
     </div>
     <div className="stat-value">{value}</div>
     {children}

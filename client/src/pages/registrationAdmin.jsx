@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { User, Building2, Mail, Lock, Phone, Image as ImageIcon, CheckCircle2, ArrowLeft } from 'lucide-react';
 import AuthLayout from '../components/auth/AuthLayout';

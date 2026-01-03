@@ -1,13 +1,18 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import InputBox from '../components/InputBox'
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Mail, ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
+import AuthLayout from '../components/auth/AuthLayout';
+import { AnimatedInput } from '../components/auth/AuthInputs';
+import { GradientButton } from '../components/auth/AuthButtons';
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('')
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [isSent, setIsSent] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    // Handle forgot password logic here
     e.preventDefault();
     if (!email) {
       setError("Please enter your email");

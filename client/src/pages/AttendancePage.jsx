@@ -128,10 +128,14 @@ const AttendancePage = () => {
 // Calendar Sub-component
 const CalendarView = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Stable data to satisfy purity rules
+    const statuses = ['present', 'absent', 'present', 'leave', 'present', 'half-day'];
+
     // Simulated calendar days for Jan 2026
     const calendarDays = Array.from({ length: 31 }, (_, i) => ({
         day: i + 1,
-        status: ['present', 'present', 'present', 'half-day', 'absent', 'leave'][Math.floor(Math.random() * 6)],
+        status: statuses[i % statuses.length],
         isToday: (i + 1) === new Date().getDate(),
         isOtherMonth: false
     }));

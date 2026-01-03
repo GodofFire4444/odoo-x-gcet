@@ -1,21 +1,134 @@
 import React from 'react';
-import { Calendar, CheckCircle, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, CheckCircle, Clock, DollarSign, AlertCircle, TrendingUp, User } from 'lucide-react';
 import './dashboard.css';
 
-const StatCard = ({ title, value, label, icon: Icon, color }) => (
-  <div className="stat-card">
+// Reusable StatCard with animations
+const StatCard = ({ title, value, label, icon: Icon, color, delay = 0, children }) => (
+  <motion.div
+    className="stat-card"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay }}
+    whileHover={{ y: -4, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+  >
     <div className="stat-header">
-      {title}
+      <span>{title}</span>
       <Icon size={20} color={color || 'var(--text-muted)'} />
     </div>
     <div className="stat-value">{value}</div>
-    {label && <div className="stat-label" style={{ color: color }}>{label}</div>}
-  </div>
+    {label && <div className="stat-label" style={{ color }}>{label}</div>}
+    {children}
+  </motion.div>
 );
+
+// Circular Progress for Attendance
+const CircularProgress = ({ percentage, size = 60, strokeWidth = 6 }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div className="circular-progress" style={{ width: size, height: size }}>
+      <svg width={size} height={size}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="var(--border)"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="var(--success)"
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+      <div className="progress-text">{percentage}%</div>
+    </div>
+  );
+};
+
+// Progress Bar for Leave Balance
+const ProgressBar = ({ used, total, color = 'var(--primary)' }) => {
+  const percentage = (used / total) * 100;
+  return (
+    <div className="progress-bar-container">
+      <div className="progress-bar-bg">
+        <motion.div
+          className="progress-bar-fill"
+          style={{ backgroundColor: color }}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 1, delay: 0.5 }}
+        />
+      </div>
+      <div className="progress-text">{used}/{total} days</div>
+    </div>
+  );
+};
+
+// Timeline Item
+const TimelineItem = ({ icon: Icon, text, time, color, delay = 0 }) => (
+  <motion.div
+    className="timeline-item"
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.5, delay }}
+  >
+    <div className="timeline-line"></div>
+    <div className="timeline-icon" style={{ backgroundColor: color }}>
+      <Icon size={16} />
+    </div>
+    <div className="timeline-content">
+      <div className="timeline-text">{text}</div>
+      <div className="timeline-time">{time}</div>
+    </div>
+  </motion.div>
+);
+
+// Get greeting based on time
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+// Current date
+const currentDate = new Date().toLocaleDateString('en-US', {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
 
 const EmployeeDashboard = () => {
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div style={{ marginBottom: '2.5rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.025em', marginBottom: '0.5rem' }}>
+          {getGreeting()}, John!
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
+          Here's a quick look at your activity for <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>.
+        </p>
+      </div>
+
+      {/* Stats Grid */}
       <div className="stats-grid">
         <StatCard
           title="Attendance"
@@ -23,61 +136,88 @@ const EmployeeDashboard = () => {
           label="Present this month"
           icon={CheckCircle}
           color="var(--success)"
-        />
+          delay={0.1}
+        >
+          <CircularProgress percentage={92} />
+        </StatCard>
         <StatCard
           title="Leave Balance"
           value="12 Days"
           label="Available"
           icon={Calendar}
           color="var(--primary)"
-        />
+          delay={0.2}
+        >
+          <ProgressBar used={8} total={20} />
+        </StatCard>
         <StatCard
           title="Next Payroll"
           value="Jan 31"
-          label="Estimated"
+          label="Processing Payment"
           icon={DollarSign}
           color="var(--warning)"
+          delay={0.3}
         />
         <StatCard
           title="Hours Logged"
           value="142h"
-          label="This month"
+          label="Target: 160h"
           icon={Clock}
           color="var(--text-muted)"
-        />
+          delay={0.4}
+        >
+          <div className="trend-indicator" style={{ marginTop: '0.5rem' }}>
+            <TrendingUp size={16} color="var(--success)" />
+            <span style={{ color: 'var(--success)' }}>+12%</span> vs last month
+          </div>
+        </StatCard>
       </div>
 
-      <h2 className="section-title">Recent Activity</h2>
-      <div className="recent-activity-list">
-        <div className="activity-item">
-          <div className="activity-icon">
-            <CheckCircle size={20} />
-          </div>
-          <div className="activity-content">
-            <div className="activity-text">Checked in at 09:02 AM</div>
-            <div className="activity-time">Today</div>
-          </div>
+      {/* Recent Activity Timeline */}
+      <motion.div
+        className="timeline-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h2 className="section-title" style={{ marginBottom: 0 }}>Recent Activity</h2>
+          <button style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--primary)',
+            fontWeight: '600',
+            fontSize: '0.875rem',
+            cursor: 'pointer'
+          }}>
+            View All
+          </button>
         </div>
-        <div className="activity-item">
-          <div className="activity-icon" style={{ color: 'var(--warning)' }}>
-            <Calendar size={20} />
-          </div>
-          <div className="activity-content">
-            <div className="activity-text">Leave request approved: Sick Leave</div>
-            <div className="activity-time">Yesterday</div>
-          </div>
+        <div className="timeline">
+          <TimelineItem
+            icon={CheckCircle}
+            text="Checked in successfully at Office Headquarters"
+            time="Today, 09:02 AM"
+            color="var(--success)"
+            delay={0.7}
+          />
+          <TimelineItem
+            icon={Calendar}
+            text='Leave request "Sick Leave" approved by HR Manager'
+            time="Yesterday, 04:30 PM"
+            color="var(--warning)"
+            delay={0.8}
+          />
+          <TimelineItem
+            icon={DollarSign}
+            text="December monthly payroll slip has been generated"
+            time="Jan 1, 2026, 10:00 AM"
+            color="var(--primary)"
+            delay={0.9}
+          />
         </div>
-        <div className="activity-item">
-          <div className="activity-icon" style={{ color: 'var(--success)' }}>
-            <DollarSign size={20} />
-          </div>
-          <div className="activity-content">
-            <div className="activity-text">Salary credited for December</div>
-            <div className="activity-time">Jan 1, 2026</div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

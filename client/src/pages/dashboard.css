@@ -1,98 +1,174 @@
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .stat-card {
     background-color: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1.25rem;
     box-shadow: var(--shadow-sm);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
 }
 
 .stat-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: var(--text-muted);
+}
+
+.stat-header span {
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+/* Circular Progress */
+.circular-progress {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-text {
+    position: absolute;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-main);
 }
 
-.stat-label {
-    font-size: 0.875rem;
-    color: var(--success);
-    /* Default to success, override in JS if needed */
+/* Progress Bar */
+.progress-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.progress-bar-bg {
+    height: 6px;
+    background-color: var(--surface-hover);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+}
+
+.progress-bar-container .progress-text {
+    position: static;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+/* Trend Indicator */
+.trend-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Timeline/Activity Styles */
+.timeline-section {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .section-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
     color: var(--text-main);
+    margin-bottom: 2rem;
+    letter-spacing: -0.01em;
 }
 
-.recent-activity-list {
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-}
-
-.activity-item {
+.timeline {
     display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--border);
+    flex-direction: column;
 }
 
-.activity-item:last-child {
-    border-bottom: none;
+.timeline-item {
+    display: flex;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    position: relative;
 }
 
-.activity-icon {
-    width: 40px;
-    height: 40px;
-    background-color: var(--surface-hover);
-    border-radius: 50%;
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 20px;
+    top: 42px;
+    bottom: 0px;
+    width: 2px;
+    background-color: var(--border);
+}
+
+.timeline-item:last-child .timeline-line {
+    display: none;
+}
+
+.timeline-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary);
-    flex-shrink: 0;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    z-index: 1;
 }
 
-.activity-content {
+.timeline-content {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 4px;
 }
 
-.activity-text {
-    font-size: 0.875rem;
+.timeline-text {
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--text-main);
-    font-weight: 500;
 }
 
-.activity-time {
-    font-size: 0.75rem;
+.timeline-time {
+    font-size: 0.8125rem;
     color: var(--text-muted);
 }

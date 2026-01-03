@@ -3,7 +3,10 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import DashboardLayout from './components/layout/DashboardLayout'
 import EmployeeDashboard from './pages/EmployeeDashboard'
-import { AttendancePage, TimeOffPage, PayrollPage, ProfilePage } from './pages/PlaceholderPages'
+import AttendancePage from './pages/AttendancePage'
+import TimeOffPage from './pages/TimeOffPage'
+import PayrollPage from './pages/PayrollPage'
+import ProfilePage from './pages/ProfilePage'
 import PlaceholderPage from './components/common/PlaceholderPage'
 
 const router = createBrowserRouter([

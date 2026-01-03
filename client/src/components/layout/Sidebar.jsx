@@ -5,7 +5,6 @@ import { Users, Calendar, DollarSign, Clock, User, LayoutDashboard } from 'lucid
 const Sidebar = () => {
     const navItems = [
         { path: '/employee', label: 'Dashboard', icon: LayoutDashboard, end: true },
-        { path: '/employee/employees', label: 'Employees', icon: Users },
         { path: '/employee/time-off', label: 'Time Off', icon: Calendar },
         { path: '/employee/payrolls', label: 'Payrolls', icon: DollarSign },
         { path: '/employee/attendance', label: 'Attendance', icon: Clock },

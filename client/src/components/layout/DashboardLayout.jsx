@@ -14,7 +14,6 @@ const DashboardLayout = () => {
         if (pathname.includes('payrolls')) return 'Payrolls';
         if (pathname.includes('attendance')) return 'Attendance';
         if (pathname.includes('profile')) return 'Profile';
-        if (pathname.includes('employees')) return 'Employees';
         return 'Dashboard';
     };
 

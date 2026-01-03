@@ -1,0 +1,103 @@
+.payroll-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.salary-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.salary-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.salary-card.primary {
+    background: linear-gradient(135deg, var(--primary), #1d4ed8);
+    color: white;
+}
+
+.salary-card.primary .salary-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.salary-card.primary .salary-value {
+    color: white;
+}
+
+.salary-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.salary-value {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+/* Payslip Modal Styles */
+.payslip-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.payslip-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.payslip-section h4 {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.payslip-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9375rem;
+}
+
+.payslip-row.total {
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 1.125rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px dashed var(--border);
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background-color: var(--surface-hover);
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.view-btn:hover {
+    background-color: var(--primary);
+    color: white;
+}

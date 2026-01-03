@@ -1,8 +1,14 @@
+.dashboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .stat-card {
@@ -12,10 +18,12 @@
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1rem;
     box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
+    min-height: 160px;
+    justify-content: space-between;
 }
 
 .stat-header {
@@ -24,16 +32,8 @@
     justify-content: space-between;
 }
 
-.stat-header span {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
 .stat-value {
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: 800;
     color: var(--text-main);
     letter-spacing: -0.02em;
@@ -45,11 +45,11 @@
     font-weight: 500;
 }
 
-/* Circular Progress */
+/* Circular Progress - Adjusted for new StatCard flow */
 .circular-progress {
     position: absolute;
-    bottom: 1.5rem;
-    right: 1.5rem;
+    bottom: 1.25rem;
+    right: 1.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -67,7 +67,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-top: 0.5rem;
+    margin: 0.5rem 0;
 }
 
 .progress-bar-bg {
@@ -76,6 +76,7 @@
     border-radius: 3px;
     overflow: hidden;
 }
+
 
 .progress-bar-fill {
     height: 100%;

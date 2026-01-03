@@ -6,7 +6,7 @@ const Switch = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <StyledWrapper>
+    <ToggleWrapper>
       <label id="theme-toggle-button">
         <input
           type="checkbox"
@@ -59,18 +59,32 @@ const Switch = () => {
           </g>
         </svg>
       </label>
-    </StyledWrapper>
+    </ToggleWrapper>
   );
 }
 
-const StyledWrapper = styled.div`
-  /* The switch - the box around the slider */
+const ToggleWrapper = styled.div`
   #theme-toggle-button {
     font-size: 6px;
     position: relative;
-    display: inline-block;
-    width: 7em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+
+    &:hover {
+      background-color: var(--surface-hover);
+      border-color: var(--border);
+    }
+  }
+
+  svg {
+    width: 7em;
   }
 
   /* Hide default HTML checkbox */
@@ -78,6 +92,7 @@ const StyledWrapper = styled.div`
     opacity: 0;
     width: 0;
     height: 0;
+    position: absolute;
   }
 
   #container,
@@ -134,6 +149,7 @@ const StyledWrapper = styled.div`
 
   #toggle:checked + svg #stars {
     opacity: 1;
-  }`;
+  }
+`;
 
 export default Switch;

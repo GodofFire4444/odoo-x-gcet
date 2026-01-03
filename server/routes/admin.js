@@ -17,4 +17,3 @@ router.put("/employees/:id", updateEmployee);
 router.delete("/employees/:id", deleteEmployee);
 
 export default router;
-

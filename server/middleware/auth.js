@@ -10,6 +10,7 @@ export const auth = (req,res,next)=>{
     next();
 
   }catch(err){
+    console.error("Auth Middleware Error:", err.message);
     return res.status(401).json({error:"Invalid token"});
   }
 };

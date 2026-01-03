@@ -1,11 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, FileText, DollarSign } from 'lucide-react';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
 import MetricCard from '../../components/common/MetricCard';
-import { mockPayroll } from '../../data/mockAdminData';
+import { getAllPayrolls } from '../../api/admin';
 
 const PayrollManagement = () => {
+    const [payrolls, setPayrolls] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchPayrolls();
+    }, []);
+
+    const fetchPayrolls = async () => {
+        try {
+            const data = await getAllPayrolls();
+            const formatted = data.map(p => ({
+                id: p._id,
+                employee: p.employeeId ? `${p.employeeId.firstName} ${p.employeeId.lastName}` : 'Unknown',
+                month: p.month || new Date(p.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }),
+                salary: `$${p.grossSalary || 0}`,
+                deductions: `-$${p.totalDeductions || 0}`,
+                netPay: `$${p.netSalary || 0}`,
+                status: p.status || 'Paid'
+            }));
+            setPayrolls(formatted);
+        } catch (error) {
+            console.error("Error fetching payrolls", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const columns = [
         { header: 'Employee', accessor: 'employee', render: (row) => <span style={{ fontWeight: 500 }}>{row.employee}</span> },
         { header: 'Month', accessor: 'month' },
@@ -30,19 +57,20 @@ const PayrollManagement = () => {
              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                 <MetricCard 
                     title="Total Payroll" 
-                    value="$124,500" 
+                    value={`$${payrolls.reduce((sum, p) => sum + parseFloat(p.netPay.replace('$','')), 0).toLocaleString()}`} 
                     icon={DollarSign} 
                     color="var(--success)"
                 />
                 <MetricCard 
                     title="Pending Payments" 
-                    value="$12,400" 
+                    value={payrolls.filter(p => p.status === 'Pending').length} 
+                    label="Records"
                     icon={DollarSign} 
                     color="var(--warning)"
                 />
             </div>
 
-            <DataTable columns={columns} data={mockPayroll} />
+            <DataTable columns={columns} data={payrolls} />
         </div>
     );
 };

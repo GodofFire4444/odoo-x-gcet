@@ -36,7 +36,8 @@ const AdminHeader = ({ title }) => {
 
     const handleLogout = () => {
         setIsMenuOpen(false);
-        navigate('/');
+        localStorage.removeItem('token');
+        navigate('/login/admin');
     };
 
     return (

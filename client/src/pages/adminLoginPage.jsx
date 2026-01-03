@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
-import { API_BASE } from '../api';
+import { login } from '../api/auth';
 import AuthLayout from '../components/auth/AuthLayout';
 import { AnimatedInput } from '../components/auth/AuthInputs';
 import { GradientButton } from '../components/auth/AuthButtons';
@@ -9,22 +9,22 @@ import { GradientButton } from '../components/auth/AuthButtons';
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    companyName: '',
     email: '',
     password: ''
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    if (errors.form) setErrors(prev => ({ ...prev, form: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!formData.companyName) newErrors.companyName = "Company name is required";
     if (!formData.email) newErrors.email = "Email is required";
     if (!formData.password) newErrors.password = "Password is required";
 
@@ -33,21 +33,15 @@ const AdminLogin = () => {
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, password: formData.password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setErrors({ form: data.error || 'Login failed' });
-        return;
-      }
+      const data = await login({ email: formData.email, password: formData.password, role: 'ADMIN' });
       localStorage.setItem('token', data.token);
       navigate('/admin/dashboard');
     } catch (err) {
-      setErrors({ form: 'Network error' });
+      setErrors({ form: err.response?.data?.error || 'Login failed' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,16 +71,6 @@ const AdminLogin = () => {
         </header>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <AnimatedInput
-            label="Company Name"
-            name="companyName"
-            placeholder="Acme Corp"
-            value={formData.companyName}
-            onChange={handleInputChange}
-            error={errors.companyName}
-            icon={<Building2 size={18} />}
-          />
-
           <AnimatedInput
             label="Admin Email"
             name="email"

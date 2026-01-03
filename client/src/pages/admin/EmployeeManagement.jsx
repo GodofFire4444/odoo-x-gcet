@@ -1,18 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Eye, Edit2, UserPlus, MoreHorizontal } from 'lucide-react';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
-import { mockEmployees } from '../../data/mockAdminData';
+import { getAllEmployees } from '../../api/admin';
+import { createEmployee } from '../../api/employee';
 
 const EmployeeManagement = () => {
+    const [employees, setEmployees] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const filteredEmployees = mockEmployees.filter(emp =>
-        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.department.toLowerCase().includes(searchTerm.toLowerCase())
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    const fetchEmployees = async () => {
+        try {
+            const data = await getAllEmployees();
+            setEmployees(data);
+        } catch (error) {
+            console.error("Error fetching employees", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filteredEmployees = employees.filter(emp =>
+        (emp.firstName + ' ' + emp.lastName).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (emp.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleViewEmployee = (employee) => {
@@ -21,21 +39,21 @@ const EmployeeManagement = () => {
     };
 
     const columns = [
-        { header: 'Employee ID', accessor: 'id' },
-        { header: 'Name', accessor: 'name', render: (row) => (
+        { header: 'Employee ID', accessor: 'employeeId' },
+        { header: 'Name', accessor: 'firstName', render: (row) => (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 600 }}>
-                    {row.name.charAt(0)}
+                    {row.firstName.charAt(0)}
                 </div>
                 <div>
-                    <div style={{ fontWeight: 500 }}>{row.name}</div>
+                    <div style={{ fontWeight: 500 }}>{`${row.firstName} ${row.lastName}`}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{row.email}</div>
                 </div>
             </div>
         )},
         { header: 'Role', accessor: 'role' },
-        { header: 'Department', accessor: 'department' },
-        { header: 'Status', accessor: 'status', render: (row) => <StatusBadge status={row.status} /> },
+        { header: 'Department', accessor: 'department' }, // Assuming department is added to model later or is optional
+        { header: 'Status', accessor: 'status', render: (row) => <StatusBadge status={row.status || 'Active'} /> }, // Default to Active if status missing
         { header: 'Actions', accessor: 'actions', render: (row) => (
             <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button 

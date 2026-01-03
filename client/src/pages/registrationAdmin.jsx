@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Building2, Mail, Lock, Phone, Image as ImageIcon, CheckCircle2, ArrowLeft } from 'lucide-react';
-import { API_BASE } from '../api';
+import { adminSignup } from '../api/auth';
 import AuthLayout from '../components/auth/AuthLayout';
 import { AnimatedInput, ImageUpload } from '../components/auth/AuthInputs';
 import { GradientButton } from '../components/auth/AuthButtons';
@@ -43,27 +43,17 @@ const RegistrationAdmin = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/admin/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          companyName: formData.companyName,
-          email: formData.email,
-          phone: formData.phoneNumber,
-          password: formData.password
-        })
+      await adminSignup({
+        companyName: formData.companyName,
+        email: formData.email,
+        phone: formData.phoneNumber,
+        password: formData.password
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        setErrors({ form: data.error || 'Registration failed' });
-        return;
-      }
-
-      navigate('/login/employee');
+      navigate('/login/admin');
 
     } catch (err) {
-      setErrors({ form: 'Network error' });
+      setErrors({ form: err.response?.data?.error || 'Registration failed' });
     }
   };
 

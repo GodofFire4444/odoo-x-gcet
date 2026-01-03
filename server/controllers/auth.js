@@ -16,8 +16,14 @@ export const login = async (req,res)=>{
 
   const match = await bcrypt.compare(password, user.password);
   if(!match) return res.status(400).json({error:"Wrong password"});
-
-  const token = signToken({ id:user._id, role });
+  
+  // Ensure role is set correctly in token
+  const tokenPayload = { 
+    id: user._id, 
+    role: role 
+  };
+  
+  const token = signToken(tokenPayload);
 
   res.json({ token });
 };

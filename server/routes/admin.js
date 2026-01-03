@@ -111,6 +111,12 @@ router.post("/create-employee", auth, adminOnly, async (req,res)=>{
 
 });
 
+// GET ALL EMPLOYEES
+router.get("/employees", auth, adminOnly, async(req,res)=>{
+  const employees = await Employee.find({ adminId: req.user.id }).select("-password");
+  res.json(employees);
+});
+
 
 export default router;
 

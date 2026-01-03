@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, ArrowLeft } from 'lucide-react';
-import { API_BASE } from '../api';
+import { login } from '../api/auth';
 import AuthLayout from '../components/auth/AuthLayout';
 import { AnimatedInput } from '../components/auth/AuthInputs';
 import { GradientButton } from '../components/auth/AuthButtons';
@@ -10,11 +10,13 @@ const LoginPageEmployee = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    if (errors.form) setErrors(prev => ({ ...prev, form: null }));
   };
 
   const handleSubmit = async (e) => {
@@ -28,27 +30,15 @@ const LoginPageEmployee = () => {
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrors({ form: data.error || 'Login failed' });
-        return;
-      }
-
+      const data = await login({ ...formData, role: 'EMPLOYEE' });
       localStorage.setItem('token', data.token);
-      const role = data.user?.role || 'EMPLOYEE';
-      if (role === 'ADMIN') navigate('/admin/dashboard');
-      else navigate('/employee/dashboard');
-
+      navigate('/employee/dashboard');
     } catch (err) {
-      setErrors({ form: 'Network error' });
+      setErrors({ form: err.response?.data?.error || 'Login failed' });
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -32,7 +32,10 @@ const payrollSchema = new mongoose.Schema({
 
   grossSalary: Number,
   totalDeductions: Number,
-  netSalary: Number
+  netSalary: Number,
+
+  month: String, // e.g. "January 2026"
+  status: { type: String, default: "Paid" } // Paid, Pending
 
 }, { timestamps: true });
 

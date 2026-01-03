@@ -1,6 +1,8 @@
-import React from 'react';
-import { Calendar, CheckCircle, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import './dashboard.css';
+import { getMyProfile } from '../api/employee';
+import { getMyPayroll } from '../api/payroll';
 
 const StatCard = ({ title, value, icon: IconComponent, color, children, label, trend }) => (
   <div className="stat-card">
@@ -22,8 +24,35 @@ const StatCard = ({ title, value, icon: IconComponent, color, children, label, t
 );
 
 const EmployeeDashboard = () => {
+  const [employee, setEmployee] = useState(null);
+  const [payroll, setPayroll] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const empData = await getMyProfile();
+        setEmployee(empData);
+        // const payrollData = await getMyPayroll(); // Assuming this endpoint exists or will be implemented
+        // setPayroll(payrollData);
+      } catch (error) {
+        console.error("Error fetching dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return <div style={{ color: 'var(--text-main)', textAlign: 'center', marginTop: '2rem' }}>Loading dashboard...</div>;
+
   return (
     <div className="dashboard-wrapper">
+      <header style={{ marginBottom: '2rem' }}>
+         <h1 className="text-2xl font-bold text-white">Welcome back, {employee?.firstName || 'Employee'}</h1>
+         <p className="text-gray-400">Here's what's happening today.</p>
+      </header>
+
       <div className="stats-grid">
         <StatCard
           title="Attendance"
@@ -46,7 +75,7 @@ const EmployeeDashboard = () => {
 
         <StatCard
           title="Leave Balance"
-          value="12 Days"
+          value={`${employee?.leaveBalance || 0} Days`}
           label="Available"
           icon={Calendar}
           color="var(--primary)"
@@ -55,7 +84,7 @@ const EmployeeDashboard = () => {
             <div className="progress-bar-bg">
               <div className="progress-bar-fill" style={{ width: '60%', backgroundColor: 'var(--primary)' }}></div>
             </div>
-            <div className="progress-text">12/20 Days</div>
+            <div className="progress-text">{employee?.leaveBalance || 0}/20 Days</div>
           </div>
         </StatCard>
 

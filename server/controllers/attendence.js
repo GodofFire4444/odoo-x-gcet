@@ -41,3 +41,14 @@ export const checkOut = async(req,res)=>{
 
   res.json(rec);
 };
+
+export const getAllAttendance = async(req,res)=>{
+  try {
+    const attendance = await Attendance.find()
+      .populate('employeeId', 'firstName lastName email employeeId')
+      .sort({ date: -1 });
+    res.json(attendance);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

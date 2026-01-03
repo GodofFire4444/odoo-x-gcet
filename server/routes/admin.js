@@ -15,23 +15,36 @@ router.post("/signup", async(req,res)=>{
   try {
     console.log("Admin Signup Request Body:", req.body);
     const { name, companyName,email,phone,password } = req.body;
+    // Basic validation
+    if (!name || !companyName || !email || !phone || !password) {
+      console.warn('Signup missing fields:', { name, companyName, email, phone });
+      return res.status(400).json({ error: 'Missing required signup fields' });
+    }
 
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({ email });
     if (existingAdmin) {
-      return res.status(400).json({ error: "Email already exists" });
+      console.warn('Signup attempt with existing email:', email);
+      return res.status(400).json({ error: 'Email already exists' });
     }
 
     const hashed = await bcrypt.hash(password,10);
 
     const admin = await Admin.create({
-      name, companyName,email,phone,password:hashed
+      name,
+      companyName,
+      email,
+      phone,
+      password: hashed
     });
 
     console.log("Admin Created:", admin._id);
-    res.json({ message:"Admin created" });
+    res.json({ message: "Admin created", id: admin._id });
   } catch (error) {
-    console.error("Signup Error:", error);
+    console.error("Signup Error:", error && error.message ? error.message : error);
+    if (error && error.code === 11000) {
+      return res.status(400).json({ error: 'Duplicate key error', details: error.keyValue });
+    }
     res.status(500).json({ error: "Server error during signup" });
   }
 });
@@ -70,57 +83,50 @@ router.post("/signup", async(req,res)=>{
 
 
 router.post("/create-employee", auth, adminOnly, async (req,res)=>{
+  try {
+    const { firstName, lastName, email } = req.body;
 
-  const { firstName, lastName, email } = req.body;
+    if (!firstName || !lastName || !email) return res.status(400).json({ error: 'Missing required fields' });
 
-  // ⭐ 1) Find last created employee for this admin
-  const lastEmp = await Employee.findOne({ adminId: req.user.id })
-    .sort({ createdAt: -1 });
+    // Check if email already exists across employees
+    const existingEmp = await Employee.findOne({ email });
+    if (existingEmp) return res.status(400).json({ error: 'Employee email already registered' });
 
-  // ⭐ 2) Generate NEXT serial
-  let serialNo = 1;
+    // Use countDocuments to safely compute next serial
+    const count = await Employee.countDocuments({ adminId: req.user.id });
+    const serialNo = count + 1;
+    const fourDigitSerial = serialNo.toString().padStart(4, "0");
 
-  if(lastEmp){
-    serialNo = (lastEmp.serialNo || 0) + 1;
+    const employeeId = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${fourDigitSerial}`;
+
+    // Use a default temporary password for new employees
+    const tempPassword = 'test@123';
+    const hashed = await bcrypt.hash(tempPassword, 10);
+
+    const emp = await Employee.create({
+      adminId: req.user.id,
+      firstName,
+      lastName,
+      serialNo,
+      employeeId,
+      email,
+      password: hashed,
+      role: "EMPLOYEE",
+      mustChangePassword: true
+    });
+
+    const out = {
+      message: "Employee created successfully",
+      employeeId: emp.employeeId,
+      tempPassword
+    };
+
+    res.json(out);
+  } catch (err) {
+    console.error('Error creating employee', err);
+    if (err.code === 11000) return res.status(400).json({ error: 'Duplicate key error' });
+    res.status(500).json({ error: 'Server error' });
   }
-
-  // ⭐ 3) Convert to 4-digit format
-  const fourDigitSerial = serialNo.toString().padStart(4, "0");
-
-
-  // ⭐ 4) employeeId format
-  const employeeId =
-    `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${fourDigitSerial}`;
-
-
-  // ⭐ 5) Generate temp password
-  const tempPassword = generatePassword();
-
-  // ⭐ 6) Hash password
-  const hashed = await bcrypt.hash(tempPassword, 10);
-
-
-  // ⭐ 7) Save employee
-  const emp = await Employee.create({
-    adminId: req.user.id,
-    firstName,
-    lastName,
-    serialNo,               // pure number for sorting
-    employeeId,             // includes 4 digits
-    email,
-    password: hashed,
-    role: "EMPLOYEE",
-    mustChangePassword: true
-  });
-
-
-  // ⭐ 8) Return temp login details
-  res.json({
-    message:"Employee created successfully",
-    employeeId,
-    tempPassword
-  });
-
 });
 
 // GET ALL EMPLOYEES

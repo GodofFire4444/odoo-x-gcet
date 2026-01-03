@@ -12,11 +12,17 @@ import adminRoutes from "./Routes/admin.js";
 import leaveRoutes from "./Routes/leave.js";
 
 dotenv.config();
-connectDB();
+// establish DB connection; exit if unable to connect
+connectDB().catch((err) => {
+	console.error("Failed to connect to MongoDB:", err && err.message ? err.message : err);
+	process.exit(1);
+});
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+// support form submissions (application/x-www-form-urlencoded)
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
